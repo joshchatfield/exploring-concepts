@@ -1,0 +1,64 @@
+<script>
+// Javascript is asynchronous! Say what?
+
+// resources
+// https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
+
+// callback option 1 (pre-define callback)---------------------------------------------
+
+function getMyAsyncData1(callback){
+    // do asynchonous stuff
+    let resultOfAsync = 'got my async data (predefined callback)';
+    setTimeout(
+        callback(resultOfAsync)
+        , 2000);
+}
+
+function preDefinedCallback(result){
+    // here I can do what I want with the data
+    console.log(result);
+}
+
+getMyAsyncData1(preDefinedCallback);
+//-------------------------------------------------------
+
+// callback option 2 (anonymous callback)---------------------------------------------
+
+function getMyAsyncDataWithCallBack2(anonymousCallback){
+    // do async stuff
+    let resultOfAsync = 'got my async data (anonymousCallback)';
+    setTimeout(() => {
+        anonymousCallback(resultOfAsync);
+    }, 2000);
+}
+
+getMyAsyncDataWithCallBack2(function(result){
+    //here I can do what I want with the data
+    console.log(result);
+});
+//-------------------------------------------------------
+
+// promise ----------------------------------------
+function getMyAsyncDataWithPromise(){
+    return new Promise(function(resolve, reject){
+        // do async stuff
+        setTimeout(() => {
+            //resolve('got the data from my promise');
+            reject('there was an error in my promise');
+        }, 2000);
+    })
+}
+
+    // either .then or .catch gets called, not both
+getMyAsyncDataWithPromise()
+    .then(function(result){
+        //here I can do what I want with the data
+        console.log(result);
+    })
+    .catch(function(err){
+        //here I can do what I want with the error
+        console.log(err);
+    })
+//-------------------------------------------------------
+
+</script>
