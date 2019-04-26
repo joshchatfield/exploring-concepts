@@ -3,62 +3,189 @@
 
 // resources
 // https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee
+// https://javascript.info/promise-chaining
+// https://medium.com/@arthurxavier/error-handling-in-long-promise-chains-155f610b5bc6
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 
 // callback option 1 (pre-define callback)---------------------------------------------
 
-function getMyAsyncData1(callback){
-    // do asynchonous stuff
-    let resultOfAsync = 'got my async data (predefined callback)';
-    setTimeout(
-        callback(resultOfAsync)
-        , 2000);
-}
+    // definition
+    function getMyAsyncData1(callback){
+        // do asynchonous stuff
+        let resultOfAsync = 'got my async data (predefined callback)';
+        setTimeout(
+            callback(resultOfAsync)
+            , 2000);
+    }
 
-function preDefinedCallback(result){
-    // here I can do what I want with the data
-    console.log(result);
-}
+    function preDefinedCallback(result){
+        // here I can do what I want with the data
+        console.log(result);
+    }
 
-getMyAsyncData1(preDefinedCallback);
-//-------------------------------------------------------
+    //execution
+    getMyAsyncData1(preDefinedCallback);
+
+    //-------------------------------------------------------
 
 // callback option 2 (anonymous callback)---------------------------------------------
 
-function getMyAsyncDataWithCallBack2(anonymousCallback){
-    // do async stuff
-    let resultOfAsync = 'got my async data (anonymousCallback)';
-    setTimeout(() => {
-        anonymousCallback(resultOfAsync);
-    }, 2000);
-}
+    // definition
+    function getMyAsyncData2(anonymousCallback){
+        // do async stuff
+        let resultOfAsync = 'got my async data (anonymousCallback)';
+        setTimeout(() => {
+            anonymousCallback(resultOfAsync);
+        }, 2000);
+    }
 
-getMyAsyncDataWithCallBack2(function(result){
-    //here I can do what I want with the data
-    console.log(result);
-});
-//-------------------------------------------------------
+    // execution
+    getMyAsyncData2(function(result){
+        //here I can do what I want with the data
+        console.log(result);
+    });
+    //-------------------------------------------------------
+
+// callback option 3 (nested callbacks AKA callback hell)---------------------------------------------
+
+    // definition
+    function getMyAsyncData3(anonymousCallback){
+        // do async stuff
+        let resultOfAsync = 'got my outer async data (nested callbacks)';
+        setTimeout(() => {
+            anonymousCallback(resultOfAsync);
+        }, 2000);
+    }
+
+    function getMyAsyncData4(anonymousCallback){
+        // do async stuff
+        let resultOfAsync = 'got my inner async data (nested callbacks)';
+        setTimeout(() => {
+            anonymousCallback(resultOfAsync);
+        }, 2000);
+    }
+
+    // execution
+    getMyAsyncData3(function(result){
+        console.log(result);
+        getMyAsyncData4(function(result){
+            console.log(result);
+        })
+    });
+    //-------------------------------------------------------------------------
+
+// treating a function like it's returned result ----------------------------
+
+    function returnsStr(){
+        return "I'm a string";
+    }
+
+    // here you are actually calling a function of a string
+    // like this, you can put a .then at then end of a function because you are actually calling a function of a promise
+    var newStr = returnsStr().toLowerCase();
+
+    // for example this won't work because it is not returning a promise
+    // returnStr().then(function(result){
+    //     // some code here
+    // })
+    //-------------------------------------------------------
 
 // promise ----------------------------------------
-function getMyAsyncDataWithPromise(){
-    return new Promise(function(resolve, reject){
-        // do async stuff
-        setTimeout(() => {
-            //resolve('got the data from my promise');
-            reject('there was an error in my promise');
-        }, 2000);
-    })
-}
+    // definition
+    function getMyAsyncData5(){
+        return new Promise(function(resolve, reject){
+            // do async stuff
+            let resultOfAsync = 'got my async data (promise)'
+            let errorFromAsync = 'error while getting the async data (promise)'
+            setTimeout(() => {
+                resolve(resultOfAsync);
+                //reject(errorFromAsync);
+            }, 2000);
+        })
+    }
 
-    // either .then or .catch gets called, not both
-getMyAsyncDataWithPromise()
+    // execution - either .then or .catch gets called, not both
+    getMyAsyncData5()
     .then(function(result){
-        //here I can do what I want with the data
+        // here I can do what I want with the data
+        console.log(result);    
+    })
+    .catch(function(err){
+        //here I can do what I want with the error
+        console.log(err);
+    })
+    //-------------------------------------------------------
+
+// promise chain ----------------------------------------
+
+    // definition
+    function getMyAsyncData6(){
+        return new Promise(function(resolve, reject){
+            // do async stuff
+            let resultOfAsync = 'got the first async data (promise chain)'
+            let errorFromAsync = 'error while getting the first async data (promise chain)'
+            setTimeout(() => {
+                resolve(resultOfAsync);
+                //reject(errorFromAsync);
+            }, 2000);
+        })
+    }
+
+    // execution - .then returns a promise so if you want to chain a second
+    // you have to return a value from the first
+    getMyAsyncData6()  // this returns a promise because of the way I defined it so I can call .then
+    .then(function(result){
+        // here I can do what I want with the data... and more async if I wanted
+        console.log(result);
+        return result; // .then's callback returns a result you specifify, .then itself returns a promise which resolves to that return value
+    }).then(function(result){
+        result += ' more data added';
         console.log(result);
     })
     .catch(function(err){
         //here I can do what I want with the error
         console.log(err);
     })
+    //-------------------------------------------------------
+
+//Handle promises with async/await -------------------------------------------------------
+    var resolveAfter2Seconds = function() {
+    console.log("async/await starting slow promise");
+    return new Promise(resolve => {
+        setTimeout(function() {
+        resolve("async/await slow");
+        console.log("async/await slow promise is done");
+        }, 2000);
+    });
+    };
+
+    var resolveAfter1Second = function() {
+    console.log("async/await starting fast promise");
+    return new Promise(resolve => {
+        setTimeout(function() {
+        resolve("async/await fast");
+        console.log("async/await fast promise is done");
+        }, 1000);
+    });
+    };
+
+    var sequentialStart = async function() {
+    console.log('async/await sequential start');
+
+    // 1. Execution gets here almost instantly
+    const slow = await resolveAfter2Seconds();
+    console.log(slow); // 2. this runs 2 seconds after 1.
+
+    const fast = await resolveAfter1Second();
+    console.log(fast); // 3. this runs 3 seconds after 1.
+    
+    return 'slow and fast: ' + slow + fast; // async functions return a promise
+    }
+
+    sequentialStart().then(function(result){
+        console.log(result);
+    });
 //-------------------------------------------------------
 
 </script>
